@@ -69,7 +69,7 @@ int main(int argc, const char** argv)
     std::cout << "mask: " << mask << std::endl;
 
     // Create packet capture descriptor
-    pcap_t* pcapd{ pcap_open_live(dev, BUFSIZ, NONPROMISCUOUS, -1, errbuf)};
+    pcap_t* pcapd{ pcap_open_live(dev, BUFSIZ, PROMISCUOUS, -1, errbuf)};
     if (!pcapd)
     {
         std::cerr << "pcap_open_live(...) failed..." << std::endl
