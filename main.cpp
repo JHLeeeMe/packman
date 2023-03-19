@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstring>
+#include <queue>
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
@@ -154,14 +155,29 @@ void callback(u_char* useless, const struct pcap_pkthdr* pkthdr, const u_char* p
         printf("|\t\tDst Port: %d\n", ntohs(tcp_hdr->dest));
     }
 
-    //static int cnt{ 1 };
     int cnt{ 0 };
+    std::queue<u_char> q{ };
     bpf_u_int32 pkthdr_len{ pkthdr->len };
     while (pkthdr_len--)
     {
-        printf("%02x ", *(packet++));
+        u_char ch{ *(packet++) };
+        printf("%02x ", ch);
+        q.push(ch);
         if ((++cnt % 16) == 0)
         {
+            while (!q.empty())
+            {
+                u_int n{ q.front() };
+                if (n > 32 && n < 126 )
+                {
+                    printf("%c", n);
+                }
+                else
+                {
+                    printf(".");
+                }
+                q.pop();
+            }
             printf("\n");
         }
     }
