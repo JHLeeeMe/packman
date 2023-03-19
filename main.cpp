@@ -129,7 +129,7 @@ void callback(u_char* useless, const struct pcap_pkthdr* pkthdr, const u_char* p
     // Offset payload
     packet += sizeof(struct ether_header);
 
-    // Get upper layer protocol type
+    // Get upper layer protocol type (L3 Type)
     unsigned short eth_type{ ntohs(p_eth_hdr->ether_type) };
     if (eth_type != ETHERTYPE_IP)
     {
