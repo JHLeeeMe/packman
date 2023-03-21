@@ -4,5 +4,5 @@ project(packman)
 include_directories(include)
 link_directories(lib)
 
-add_executable(packman main.cpp packet_reader.cpp)
+add_executable(packman main.cpp packet_reader.cpp callback.cpp)
 target_link_libraries(packman PRIVATE pcap)
