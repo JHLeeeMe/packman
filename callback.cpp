@@ -2,7 +2,7 @@
 
 void print_eth_hdr(const struct ether_header* eth_hdr)
 {
-    printf("/----------------------- Ethernet packet -----------------------\\\n");
+    printf("/----------------------- Ethernet Header -----------------------\\\n");
     printf("|Src: %02x", eth_hdr->ether_shost[0]);
     for (size_t i = 1; i < 6; i++)
     {
@@ -19,7 +19,7 @@ void print_eth_hdr(const struct ether_header* eth_hdr)
 
 void print_ip_hdr(const struct ip* ip_hdr)
 {
-    printf("|------------------------- IP packet ---------------------------|\n");
+    printf("|------------------------- IP Header ---------------------------|\n");
     printf("|\tVersion    : %d\n", ip_hdr->ip_v);
     printf("|\tHeader Len : %d\n", ip_hdr->ip_hl);
     printf("|\tIdent      : %d\n", ip_hdr->ip_id);
@@ -30,9 +30,16 @@ void print_ip_hdr(const struct ip* ip_hdr)
 
 void print_tcp_hdr(const struct tcphdr* tcp_hdr)
 {
-    printf("|------------------------- TCP packet --------------------------|\n");
+    printf("|------------------------- TCP Header --------------------------|\n");
     printf("|\t\tSrc Port: %d\n", ntohs(tcp_hdr->source));
     printf("|\t\tDst Port: %d\n", ntohs(tcp_hdr->dest));
+}
+
+void print_udp_hdr(const struct udphdr* udp_hdr)
+{
+    printf("|------------------------- UDP Header --------------------------|\n");
+    printf("|\t\tSrc Port: %d\n", ntohs(udp_hdr->source));
+    printf("|\t\tDst Port: %d\n", ntohs(udp_hdr->dest));
 }
 
 void print_packet(const struct pcap_pkthdr* pkthdr, const u_char* packet)
@@ -98,11 +105,8 @@ void callback(u_char* useless,
     // Print Ethernet Header
     print_eth_hdr(eth_hdr);
 
-    // Offset payload
-    packet += sizeof(struct ether_header);
-
     // Get upper layer protocol type (L3 Type)
-    unsigned short eth_type{ ntohs(eth_hdr->ether_type) };
+    uint16_t eth_type{ ntohs(eth_hdr->ether_type) };
     if (eth_type != ETHERTYPE_IP)
     {
         std::cout << "\t\t !! ip packet not exists." << std::endl;
@@ -112,14 +116,24 @@ void callback(u_char* useless,
     }
 
     // Print IP Header
-    ip_hdr = (struct ip*)packet;
+    const size_t eth_hdr_len{ sizeof(struct ether_header) };  // 14 Byte
+    ip_hdr = (struct ip*)(packet + eth_hdr_len);
     print_ip_hdr(ip_hdr);
 
-    // Print TCP Header
-    if (ip_hdr->ip_p == IPPROTO_TCP)
+    // Print TCP or UDP Header
+    const u_char* payload{ packet + eth_hdr_len + (ip_hdr->ip_hl * 4) };
+    switch (ip_hdr->ip_p)
     {
-        tcp_hdr = (struct tcphdr*)(packet + (ip_hdr->ip_hl * 4));
+    case IPPROTO_TCP:
+        tcp_hdr = (struct tcphdr*)payload;
         print_tcp_hdr(tcp_hdr);
+        break;
+    case IPPROTO_UDP:
+        udp_hdr = (struct udphdr*)payload;
+        print_udp_hdr(udp_hdr);
+        break;
+    default:
+        break;
     }
 
     // Print packet
