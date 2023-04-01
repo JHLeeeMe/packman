@@ -7,6 +7,7 @@
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
+#include <netinet/ip_icmp.h>
 #include <net/ethernet.h>
 
 #include <pcap.h>
