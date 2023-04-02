@@ -1,77 +1,12 @@
 #include "callback.hpp"
 
-//unsigned short icmp_checksum(unsigned short* packet, int len)
-//{
-//    int sum{ 0 };
-//    while (len > 1)
-//    {
-//        sum += *packet++;
-//        len -= 2;
-//    }
-//
-//    if (len == 1)
-//    {
-//        sum += *(unsigned char*)packet;
-//    }
-//
-//    sum = (sum >> 16) + (sum & 0xffff);
-//    sum += (sum >> 16);
-//
-//    return ~sum;
-//}
-
-//void send_icmp(int sockfd, struct iphdr* ip_hdr, struct tcphdr* tcp_hdr)
-//{
-//    /* <netinet/ip_icmp>
-//     *
-//     *struct icmphdr
-//     *{
-//     *  u_int8_t type;                     // message type
-//     *  u_int8_t code;                     // type sub-code
-//     *  u_int16_t checksum;
-//     *  union
-//     *  {
-//     *    struct
-//     *    {
-//     *      u_int16_t id;
-//     *      u_int16_t sequence;
-//     *    } echo;                          // echo datagram
-//     *
-//     *    u_int32_t gateway;        // gateway address
-//     *
-//     *    struct
-//     *    {
-//     *      u_int16_t __unused;
-//     *      u_int16_t mtu;
-//     *    } frag;                          // path mtu discovery
-//     *  } un;
-//     *};
-//     */
-//
-//    struct sockaddr_in addr{ };
-//    addr.sin_family = AF_INET;
-//    //addr.sin_addr.s_addr = src_addr;
-//    addr.sin_addr.s_addr = ip_hdr->saddr;
-//
-//    struct icmp* icmp{ };
-//    icmp->icmp_type = ICMP_DEST_UNREACH;
-//    icmp->icmp_code = ICMP_PROT_UNREACH;
-//
-//    u_char data[28]{ };
-//    memcpy(data, ip_hdr, 20);
-//    memcpy(data + 20, tcp_hdr, 8);
-//    memcpy(icmp->icmp_data, data, 28);
-//
-//    icmp->icmp_cksum = 0;
-//    icmp->icmp_cksum = icmp_checksum((unsigned short*)icmp, 28);
-//    ::sendto(sockfd, icmp, 28, 0, (struct sockaddr*)&addr, sizeof(addr));
-//
-//    //struct icmphdr* icmp_hdr{ };
-//    //icmp_hdr->type = ICMP_DEST_UNREACH;
-//    //icmp_hdr->code = ICMP_PROT_UNREACH;
-//    //icmp_hdr->checksum = icmp_checksum((unsigned short*)icmp_hdr, 8);
-//    //::sendto(sockfd, icmp_hdr, 8, 0, (struct sockaddr*)&addr, sizeof(addr));
-//}
+void set_icmp_hdr(char* buf)
+{
+    struct icmphdr* icmp_hdr = (struct icmphdr*)buf;
+    icmp_hdr->type = ICMP_DEST_UNREACH;
+    icmp_hdr->code = ICMP_PROT_UNREACH;
+    icmp_hdr->checksum = 0x00;
+}
 
 void print_eth_hdr(const struct ether_header* eth_hdr)
 {
@@ -198,13 +133,19 @@ void callback(u_char* useless,
     switch (ip_hdr->ip_p)
     {
     case IPPROTO_TCP:
-        tcp_hdr = (struct tcphdr*)payload;
-        print_tcp_hdr(tcp_hdr);
-        break;
-    case IPPROTO_UDP:
-        udp_hdr = (struct udphdr*)payload;
-        print_udp_hdr(udp_hdr);
-        break;
+        {
+            char buf[8]{ };
+            set_icmp_hdr(buf);
+            break;
+        }
+    //case IPPROTO_TCP:
+    //    tcp_hdr = (struct tcphdr*)payload;
+    //    print_tcp_hdr(tcp_hdr);
+    //    break;
+    //case IPPROTO_UDP:
+    //    udp_hdr = (struct udphdr*)payload;
+    //    print_udp_hdr(udp_hdr);
+    //    break;
     //case IPPROTO_TCP:
     //    {
     //        tcp_hdr = (struct tcphdr*)payload;
@@ -217,7 +158,7 @@ void callback(u_char* useless,
     }
 
     // Print packet
-    print_packet(pkthdr, packet);
+    //print_packet(pkthdr, packet);
     printf("\n\n");
 }
 
