@@ -7,5 +7,7 @@ int main(int argc, const char** argv)
     packman.create_pcapd();
     packman.set_filter_rule(argv[2]);
     packman.start_loop(atoi(argv[1]), callback, nullptr);
+
+    return 0;
 }
 

@@ -1,5 +1,38 @@
 #include "callback.hpp"
 
+void set_icmp_hdr(char* buf)
+{
+    icmp_hdr = (struct icmphdr*)buf;
+    icmp_hdr->type = ICMP_DEST_UNREACH;
+    icmp_hdr->code = ICMP_PROT_UNREACH;
+    icmp_hdr->checksum = 0x00;
+}
+
+void send_icmp(struct icmphdr* icmp_hdr, const in_addr src_addr)
+{
+    int sockfd{ socket(AF_INET, SOCK_RAW, IPPROTO_ICMP) };
+    if (sockfd < 0)
+    {
+        std::cerr << "socket(...) failed..." << std::endl;
+        close(sockfd);
+        return;
+    }
+
+    struct sockaddr_in addr_info{};
+    addr_info.sin_family = AF_INET;
+    addr_info.sin_addr.s_addr = src_addr.s_addr;
+
+    if (::sendto(sockfd, icmp_hdr, sizeof(*icmp_hdr), 0,
+                 (struct sockaddr*)&addr_info, sizeof(addr_info)) < 0)
+    {
+        std::cerr << "sendto(...) failed..." << std::endl;
+        close(sockfd);
+        return;
+    }
+
+    close(sockfd);
+}
+
 void print_eth_hdr(const struct ether_header* eth_hdr)
 {
     printf("/----------------------- Ethernet Header -----------------------\\\n");
@@ -125,20 +158,35 @@ void callback(u_char* useless,
     switch (ip_hdr->ip_p)
     {
     case IPPROTO_TCP:
-        tcp_hdr = (struct tcphdr*)payload;
-        print_tcp_hdr(tcp_hdr);
-        break;
     case IPPROTO_UDP:
-        udp_hdr = (struct udphdr*)payload;
-        print_udp_hdr(udp_hdr);
-        break;
+        {
+            char buf[8]{ };
+            set_icmp_hdr(buf);
+            send_icmp((struct icmphdr*)buf, ip_hdr->ip_src);
+
+            break;
+        }
+    //case IPPROTO_TCP:
+    //    tcp_hdr = (struct tcphdr*)payload;
+    //    print_tcp_hdr(tcp_hdr);
+    //    break;
+    //case IPPROTO_UDP:
+    //    udp_hdr = (struct udphdr*)payload;
+    //    print_udp_hdr(udp_hdr);
+    //    break;
+    //case IPPROTO_TCP:
+    //    {
+    //        tcp_hdr = (struct tcphdr*)payload;
+    //        int sockfd{ socket(AF_INET, SOCK_RAW, IPPROTO_ICMP) };
+    //        send_icmp(sockfd, (struct iphdr*)ip_hdr, tcp_hdr);
+    //        break;
+    //    }
     default:
         break;
     }
 
     // Print packet
-    print_packet(pkthdr, packet);
-
+    //print_packet(pkthdr, packet);
     printf("\n\n");
 }
 
