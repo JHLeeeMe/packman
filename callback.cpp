@@ -2,10 +2,35 @@
 
 void set_icmp_hdr(char* buf)
 {
-    struct icmphdr* icmp_hdr = (struct icmphdr*)buf;
+    icmp_hdr = (struct icmphdr*)buf;
     icmp_hdr->type = ICMP_DEST_UNREACH;
     icmp_hdr->code = ICMP_PROT_UNREACH;
     icmp_hdr->checksum = 0x00;
+}
+
+void send_icmp(struct icmphdr* icmp_hdr, const in_addr src_addr)
+{
+    int sockfd{ socket(AF_INET, SOCK_RAW, IPPROTO_ICMP) };
+    if (sockfd < 0)
+    {
+        std::cerr << "socket(...) failed..." << std::endl;
+        close(sockfd);
+        return;
+    }
+
+    struct sockaddr_in addr_info{};
+    addr_info.sin_family = AF_INET;
+    addr_info.sin_addr.s_addr = src_addr.s_addr;
+
+    if (::sendto(sockfd, icmp_hdr, sizeof(*icmp_hdr), 0,
+                 (struct sockaddr*)&addr_info, sizeof(addr_info)) < 0)
+    {
+        std::cerr << "sendto(...) failed..." << std::endl;
+        close(sockfd);
+        return;
+    }
+
+    close(sockfd);
 }
 
 void print_eth_hdr(const struct ether_header* eth_hdr)
@@ -133,9 +158,12 @@ void callback(u_char* useless,
     switch (ip_hdr->ip_p)
     {
     case IPPROTO_TCP:
+    case IPPROTO_UDP:
         {
             char buf[8]{ };
             set_icmp_hdr(buf);
+            send_icmp((struct icmphdr*)buf, ip_hdr->ip_src);
+
             break;
         }
     //case IPPROTO_TCP:
