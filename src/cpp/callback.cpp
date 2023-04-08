@@ -20,12 +20,11 @@ void callback(u_char* useless,
     }
 
     // Print IP Header
-    const size_t eth_hdr_len{ sizeof(struct ether_header) };  // 14 Byte
-    ip_hdr = (struct ip*)(packet + eth_hdr_len);
+    ip_hdr = (struct ip*)(packet + sizeof(struct ether_header));
     print_ip_hdr(ip_hdr);
 
     // Print TCP or UDP Header
-    const u_char* payload{ packet + eth_hdr_len + (ip_hdr->ip_hl * 4) };
+    const u_char* payload{ packet + sizeof(struct ether_header) + (ip_hdr->ip_hl * 4) };
     switch (ip_hdr->ip_p)
     {
     case IPPROTO_TCP:
