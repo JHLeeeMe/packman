@@ -8,17 +8,18 @@
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
-#include <netinet/ip_icmp.h>
 #include <net/ethernet.h>
 
 #include <pcap.h>
 
-static struct ip*      ip_hdr{ };
-static struct tcphdr*  tcp_hdr{ };
-static struct udphdr*  udp_hdr{ };
-static struct icmphdr* icmp_hdr{ };
+static struct ip*     ip_hdr{ };
+static struct tcphdr* tcp_hdr{ };
+static struct udphdr* udp_hdr{ };
 
-void set_icmp_hdr(char* buf);
-void send_icmp(struct icmphdr* icmp_hdr, const in_addr src_addr);
+void print_ip_hdr(const struct ip*);
+void print_tcp_hdr(const struct tcphdr*);
+void print_udp_hdr(const struct udphdr*);
+void print_eth_hdr(const struct ether_header*);
+void print_packet(const struct pcap_pkthdr*, const u_char*);
 void callback(u_char*, const struct pcap_pkthdr*, const u_char*);
 
