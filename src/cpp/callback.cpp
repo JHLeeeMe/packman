@@ -13,7 +13,7 @@ void callback(u_char* useless,
     uint16_t eth_type{ ntohs(eth_hdr->ether_type) };
     if (eth_type != ETHERTYPE_IP)
     {
-        std::cout << "\t\t !! ip packet not exists." << std::endl;
+        std::cout << "|\t\t !! ip packet not exists." << std::endl;
         print_packet(pkthdr, packet);
         std::cout << std::endl;
         return;
