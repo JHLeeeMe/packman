@@ -4,5 +4,5 @@ project(packman)
 include_directories(include)
 link_directories(lib)
 
-add_executable(packman main.c)
+add_executable(packman main.c pcap_ext.c)
 target_link_libraries(packman)

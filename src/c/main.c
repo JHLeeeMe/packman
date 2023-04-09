@@ -1,3 +1,4 @@
+/*
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
@@ -125,4 +126,48 @@ int main(int argc, char** argv)
 
     return 0;
 }
+
+//*/
+
+#include <stdio.h>
+
+#include "pcap_ext.h"
+
+int main()
+{
+    char fname[256 + 1] = "";
+    printf("분석할 pcap 파일명: ");
+    scanf("%s", fname);
+
+    FILE* fp = 0;
+    if ((fp = fopen(fname, "rb")) == 0)
+    {
+        perror("file open failed...");
+        fclose(fp);
+        return 1;
+    }
+
+    struct PFHeader pfh = { 0 };
+    if (parse_pcap_file(fp, &pfh) == 0)
+    {
+        printf("pcap file이 아닙니다.\n");
+        fclose(fp);
+        return 2;
+    }
+
+    switch (pfh.linktype)
+    {
+    case LT_ETHER:
+        parse_ether(fp);
+        break;
+    default:
+        printf("Not Support\n");
+        break;
+    }
+
+    fclose(fp);
+
+    return 0;
+}
+//*/
 
