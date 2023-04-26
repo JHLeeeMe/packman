@@ -38,5 +38,12 @@ struct PHeader
 int parse_pcap_file(FILE* fp, struct PFHeader* pfh);
 void print_pcap_file(struct PFHeader* pfh);
 
-void parse_ether(FILE* fp);
+void parse_packet(FILE* fp);
 void print_pkthdr(struct PHeader* pkthdr, int pno);
+
+#define L3_IPv4 (0x0800)
+#define L3_ARP (0x0806)
+
+void parse_ether(u_char* packet, size_t pktlen);
+void print_eth_hdr(struct ether_header* eth_hdr);
+
