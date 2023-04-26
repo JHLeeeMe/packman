@@ -135,11 +135,11 @@ int main(int argc, char** argv)
 
 int main()
 {
-    char fname[256 + 1] = "";
+    char fname[256 + 1] = { 0 };
     printf("분석할 pcap 파일명: ");
     scanf("%s", fname);
 
-    FILE* fp = 0;
+    FILE* fp = NULL;
     if ((fp = fopen(fname, "rb")) == 0)
     {
         perror("file open failed...");
@@ -148,7 +148,7 @@ int main()
     }
 
     struct PFHeader pfh = { 0 };
-    if (parse_pcap_file(fp, &pfh) == 0)
+    if (parse_pcap_file(fp, &pfh) < 0)
     {
         printf("pcap file이 아닙니다.\n");
         fclose(fp);
@@ -158,7 +158,7 @@ int main()
     switch (pfh.linktype)
     {
     case LT_ETHER:
-        parse_ether(fp);
+        parse_packet(fp);
         break;
     default:
         printf("Not Support\n");
