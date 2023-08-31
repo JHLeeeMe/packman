@@ -1,8 +1,41 @@
-cmake_minimum_required(VERSION 3.10)
-project(packman)
+# Sources
+if(WIN32)
+    file(GLOB SRCS_G *.c)
+elseif(UNIX AND NOT APPLE)
+    file(GLOB SRCS_G
+        main.c
+        pcap_ext.c)
+else()
+endif()
 
-include_directories(include)
-link_directories(lib)
+# Headers
+file(GLOB HDRS_G include/*.h)
 
-add_executable(packman main.c pcap_ext.c)
-target_link_libraries(packman)
+# Create Targets
+add_executable(C_Packman ${SRCS_G})
+
+# Include (-I)
+target_include_directories(C_Packman
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+)
+if(WIN32)
+elseif(UNIX AND NOT APPLE)
+    target_include_directories(C_Packman
+        PUBLIC
+            $<BUILD_INTERFACE:/usr/include>
+    )
+else()
+endif()
+
+# Predefine (-D)
+if(WIN32)
+    target_compile_definitions(C_Packman PUBLIC UNICODE _UNICODE)
+elseif(UNIX AND NOT APPLE)
+else()
+endif()
+
+install(
+    FILES ${HDRS_G}
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/include
+)
