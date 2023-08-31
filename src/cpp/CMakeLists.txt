@@ -1,8 +1,44 @@
-cmake_minimum_required(VERSION 3.10)
-project(packman)
+# Sources
+if(WIN32)
+    file(GLOB SRCS_G *.cpp)
+elseif(UNIX AND NOT APPLE)
+    file(GLOB SRCS_G
+        callback.cpp
+        main.cpp
+        packet_reader.cpp)
+else()
+endif()
 
-include_directories(include)
-link_directories(lib)
+# Headers
+file(GLOB HDRS_G include/*.h*)
 
-add_executable(packman main.cpp packet_reader.cpp callback.cpp)
-target_link_libraries(packman PRIVATE pcap)
+# Create Targets
+add_executable(CXX_Packman ${SRCS_G})
+
+# Include (-I)
+target_include_directories(CXX_Packman
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        if(WIN32)
+        elseif(UNIX AND NOT APPLE)
+            $<BUILD_INTERFACE:/usr/include>
+        else()
+        endif()
+)
+
+# Link (-l)
+target_link_libraries(CXX_Packman
+    PRIVATE
+        pcap
+)
+
+# Predefine (-D)
+if(WIN32)
+    target_compile_definitions(CXX_Packman PUBLIC UNICODE _UNICODE)
+else()
+endif()
+
+install(
+    FILES ${HDRS_G}
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/include
+)
