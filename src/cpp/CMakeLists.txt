@@ -15,6 +15,9 @@ file(GLOB HDRS_G include/*.h*)
 # Create Targets
 add_executable(CXX_Packman ${SRCS_G})
 
+# PCH
+target_precompile_headers(CXX_Packman PRIVATE include/pch.h)
+
 # Include (-I)
 target_include_directories(CXX_Packman
     PUBLIC
