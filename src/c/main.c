@@ -1,16 +1,7 @@
-/*
-#include <stdio.h>
-#include <unistd.h>
-#include <string.h>
-#include <errno.h>
-#include <linux/filter.h>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <net/if.h>
-#include <netinet/ether.h>
-#include <netinet/ip.h>
-#include <netinet/tcp.h>
+//*
+
+#include "pcap_ext.h"
+
 
 #define BUF_SIZE (4096)
 
@@ -25,14 +16,51 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    const char* dev = "enp3s0";
+    struct ifaddrs* ifaddr = NULL;
+    if (getifaddrs(&ifaddr) == -1) {
+        perror("getifaddrs(...) failed...");
+        return 1;
+    }
+
+    const char* dev = NULL;
+    int family = 0;
+    char host[NI_MAXHOST] = { 0, };
+    struct ifaddrs* ifaddr_tmp = ifaddr;
+    while (1)
+    {
+        if (ifaddr_tmp == NULL)
+        {
+            break;
+        }
+
+        family = ifaddr_tmp->ifa_addr->sa_family;
+        if (family != AF_INET)
+        {
+            ifaddr_tmp = ifaddr_tmp->ifa_next;
+            continue;
+        }
+
+        struct sockaddr_in* addr_in = (struct sockaddr_in*)ifaddr_tmp->ifa_addr;
+        inet_ntop(family, &(addr_in->sin_addr), host, sizeof(host));
+        printf("%s\tAddress: <%s>\n", ifaddr_tmp->ifa_name, host);
+        
+        if (strncmp(ifaddr_tmp->ifa_name, "en", 2) == 0 ||
+            strncmp(ifaddr_tmp->ifa_name, "eth", 3) == 0)
+        {
+            dev = ifaddr_tmp->ifa_name;
+        }
+
+        ifaddr_tmp = ifaddr_tmp->ifa_next;
+    }
+    freeifaddrs(ifaddr);
+
     if (setsockopt(sockfd, SOL_SOCKET, SO_BINDTODEVICE, dev, strlen(dev) + 1))
     {
         perror("setsockopt(...) bind failed...");
         return 2;
     }
 
-    struct ifreq eth_req;
+    struct ifreq eth_req = { 0, };
     strncpy(eth_req.ifr_name, dev, strlen(dev) + 1);
     if (ioctl(sockfd, SIOCGIFFLAGS, &eth_req) == -1)
     {
@@ -40,25 +68,27 @@ int main(int argc, char** argv)
         return 3;
     }
 
+    eth_req.ifr_flags |= IFF_PROMISC;
     if (ioctl(sockfd, SIOCSIFFLAGS, &eth_req) == -1)
     {
         perror("ioctl(..., SIOCsIFFLAGS, ...) failed.");
         return 4;
     }
 
+    // TCP
     struct sock_filter bpf_code[] = {
-        { 0x28, 0, 0, 0x0000000c },
-        { 0x15, 0, 5, 0x000086dd },
-        { 0x30, 0, 0, 0x00000014 },
-        { 0x15, 6, 0, 0x00000006 },
-        { 0x15, 0, 6, 0x0000002c },
-        { 0x30, 0, 0, 0x00000036 },
-        { 0x15, 3, 4, 0x00000006 },
-        { 0x15, 0, 3, 0x00000800 },
-        { 0x30, 0, 0, 0x00000017 },
-        { 0x15, 0, 1, 0x00000006 },
-        { 0x6, 0, 0, 0x00040000 },
-        { 0x6, 0, 0, 0x00000000 }
+        {0x28, 0, 0, 0x0000000c},
+        {0x15, 0, 5, 0x000086dd},
+        {0x30, 0, 0, 0x00000014},
+        {0x15, 6, 0, 0x00000006},
+        {0x15, 0, 6, 0x0000002c},
+        {0x30, 0, 0, 0x00000036},
+        {0x15, 3, 4, 0x00000006},
+        {0x15, 0, 3, 0x00000800},
+        {0x30, 0, 0, 0x00000017},
+        {0x15, 0, 1, 0x00000006},
+        {0x6, 0, 0, 0x00040000},
+        {0x6, 0, 0, 0x00000000}
     };
 
     struct sock_fprog filter;
@@ -71,8 +101,8 @@ int main(int argc, char** argv)
         return 5;
     }
 
-    int recv_bytes;
-    int n;
+    int recv_bytes = 0;
+    int n = 0;
     while (1)
     {
         while(1)
@@ -127,7 +157,7 @@ int main(int argc, char** argv)
     return 0;
 }
 
-//*/
+/*/
 
 #include <stdio.h>
 
