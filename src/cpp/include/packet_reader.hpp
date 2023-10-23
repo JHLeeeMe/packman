@@ -1,9 +1,6 @@
 #pragma once
 
-#include <iostream>
-#include <cstring>
-
-#include <pcap.h>
+#include "pch.h"
 
 #define PROMISCUOUS    (1)
 #define NONPROMISCUOUS (0)
