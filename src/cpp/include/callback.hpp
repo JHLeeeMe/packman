@@ -14,8 +14,8 @@ struct ether_header
 struct ip
 {
 #if __BYTE_ORDER == __LITTLE_ENDIAN
-    unsigned int ip_hl:4;
-    unsigned int ip_v:4;
+    uint8_t ip_hl:4;
+    uint8_t ip_v:4;
 #elif __BYTE_ORDER == __BIG_ENDIAN
     unsigned int ip_v:4;
     unsigned int ip_hl:4;
