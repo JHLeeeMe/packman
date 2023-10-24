@@ -15,7 +15,7 @@ public:
 public:
     void create_pcapd(int buf_size = BUFSIZ,
             int promisc = PROMISCUOUS, int time_out = -1);
-    void set_filter_rule(const char* rule) const;
+    void set_filter_rule(const char* rule = "") const;
     void start_loop(size_t packet_cnt,
             pcap_handler callback, u_char* user_data = nullptr) const;
 private:
