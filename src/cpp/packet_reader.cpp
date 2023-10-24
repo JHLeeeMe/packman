@@ -81,11 +81,20 @@ void Packman::set_ifname()
 {
     for (pcap_if_t* d = alldevs; d != nullptr; d = d->next)
     {
+#ifdef _WIN32
+        if (strncmp(d->description, "Real", 4) == 0)
+        {
+            dev = d->name;
+            break;
+        }
+#else
         if (strncmp(d->name, "en", 2) == 0 ||
             strncmp(d->name, "eth", 3) == 0)
         {
             dev = d->name;
+            break;
         }
+#endif
     }
 
     if (!dev)

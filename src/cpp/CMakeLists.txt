@@ -9,27 +9,37 @@ elseif(UNIX AND NOT APPLE)
 else()
 endif()
 
-# Headers
-file(GLOB HDRS_G include/*.h*)
-
 # Create Targets
 add_executable(CXX_Packman ${SRCS_G})
+
+# PCH
+target_precompile_headers(CXX_Packman PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/pch.h)
 
 # Include (-I)
 target_include_directories(CXX_Packman
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        if(WIN32)
-        elseif(UNIX AND NOT APPLE)
-            $<BUILD_INTERFACE:/usr/include>
-        else()
-        endif()
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/npcap>
 )
 
+# Lib (-L)
+if(WIN32)
+    target_link_directories(CXX_Packman
+        PUBLIC
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib/npcap/x64>
+    )
+else()
+endif()
+
 # Link (-l)
+if(WIN32)
+    list(APPEND LIBS wpcap ws2_32)
+elseif(UNIX AND NOT APPLE)
+    list(APPEND LIBS pcap)
+endif()
 target_link_libraries(CXX_Packman
     PRIVATE
-        pcap
+        ${LIBS}
 )
 
 # Predefine (-D)
@@ -38,7 +48,12 @@ if(WIN32)
 else()
 endif()
 
-install(
-    FILES ${HDRS_G}
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/include
+install(TARGETS CXX_Packman 
+    RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+    LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
 )
+install(
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include
+    DESTINATION ${CMAKE_INSTALL_PREFIX}
+)
+

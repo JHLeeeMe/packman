@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 project(Packman)
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -10,8 +10,11 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)  # -fPIC
-add_subdirectory(src/c)
 add_subdirectory(src/cpp)
+if(WIN32)
+elseif(UNIX AND NOT APPLE)
+    add_subdirectory(src/c)
+endif()
 
 message(STATUS "CMake Version:          ${CMAKE_VERSION}")
 message(STATUS "Project:                ${PROJECT_NAME}")
